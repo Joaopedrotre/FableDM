@@ -14,68 +14,23 @@
 }
 
 * { box-sizing: border-box; }
-body {
-  margin: 0;
-  font-family: var(--corpo);
-  background: var(--preto);
-  color: var(--texto);
-}
+body { margin: 0; font-family: var(--corpo); background: var(--preto); color: var(--texto); }
+button { font: inherit; cursor: pointer; }
 
-.pagina {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: 1fr minmax(380px, 500px);
-}
-
-/* Lado esquerdo: marca */
-.lateral {
-  padding: 4rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  background:
-    radial-gradient(ellipse at 30% 40%, rgba(90, 61, 40, 0.45), transparent 65%),
-    var(--preto);
-  border-right: 1px solid var(--marrom-claro);
-}
-.lateral h1 {
-  font-family: var(--titulo);
+/* ---------- Botão principal e campos ---------- */
+.botao {
   font-weight: 700;
-  font-size: clamp(2.8rem, 6.5vw, 5rem);
-  letter-spacing: .04em;
-  margin: 0 0 1.25rem;
-  color: var(--ouro);
+  padding: .85rem 1rem;
+  border: 1px solid var(--ouro-claro);
+  border-radius: 4px;
+  background: var(--ouro);
+  color: var(--preto);
 }
-.lateral h1::after {
-  content: '';
-  display: block;
-  width: 5rem;
-  height: 2px;
-  margin-top: 1rem;
-  background: linear-gradient(90deg, var(--ouro), transparent);
-}
-.lateral p { font-size: 1.35rem; max-width: 24ch; margin: 0; color: var(--suave); }
-
-/* Formulário */
-.cartao {
-  background: var(--marrom-escuro);
-  padding: 2.5rem 2.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  justify-content: center;
-}
-.cartao h2 {
-  font-family: var(--titulo);
-  font-weight: 500;
-  font-size: 1.8rem;
-  letter-spacing: .03em;
-  margin: 0 0 .25rem;
-  color: var(--ouro-claro);
-}
+.botao:hover:not(:disabled) { background: var(--ouro-claro); }
+.botao:disabled { opacity: .6; cursor: wait; }
 
 .campo { display: flex; flex-direction: column; gap: .3rem; }
-label { font-weight: 700; font-size: 1rem; color: var(--texto); }
+label { font-weight: 700; }
 input {
   font: inherit;
   padding: .7rem .8rem;
@@ -85,47 +40,105 @@ input {
   color: var(--texto);
 }
 input::placeholder { color: #7d6e58; }
-input:hover { border-color: var(--suave); }
-input:focus-visible {
-  outline: none;
-  border-color: var(--ouro);
-  box-shadow: 0 0 0 3px rgba(201, 162, 74, .35);
-}
+input:focus-visible { outline: none; border-color: var(--ouro); box-shadow: 0 0 0 3px rgba(201, 162, 74, .35); }
 input[aria-invalid='true'] { border-color: var(--erro); }
+button:focus-visible, a:focus-visible { outline: 3px solid var(--ouro-claro); outline-offset: 2px; }
 
 .erro { margin: 0; color: var(--erro); font-size: .95rem; }
-
-.requisitos {
-  list-style: none; margin: -.25rem 0 0; padding: 0;
-  display: grid; grid-template-columns: 1fr 1fr; gap: .15rem .75rem;
-  font-size: .9rem; color: var(--suave);
-}
-.requisitos .ok { color: var(--ok); font-weight: 700; }
-
-button {
-  font: inherit; font-weight: 700;
-  padding: .85rem 1rem;
-  border: 1px solid var(--ouro-claro);
-  border-radius: 4px;
-  background: var(--ouro);
-  color: var(--preto);
-  cursor: pointer;
-  margin-top: .5rem;
-}
-button:hover:not(:disabled) { background: var(--ouro-claro); }
-button:focus-visible { outline: 3px solid var(--ouro-claro); outline-offset: 2px; }
-button:disabled { opacity: .6; cursor: wait; }
-
-.aviso { padding: .75rem .9rem; border-radius: 4px; margin: 0; font-size: .98rem; border: 1px solid; }
+.aviso { padding: .75rem .9rem; border-radius: 4px; margin: 0; border: 1px solid; }
 .aviso-erro { background: rgba(240, 137, 122, .1); color: var(--erro); border-color: rgba(240, 137, 122, .5); }
 .aviso-ok { background: rgba(156, 203, 143, .1); color: var(--ok); border-color: rgba(156, 203, 143, .5); }
 
+/* ---------- Cadastro e login ---------- */
+.pagina { min-height: 100vh; display: grid; grid-template-columns: 1fr minmax(380px, 500px); }
+.lateral {
+  padding: 4rem;
+  display: flex; flex-direction: column; justify-content: center;
+  background: radial-gradient(ellipse at 30% 40%, rgba(90, 61, 40, .45), transparent 65%), var(--preto);
+  border-right: 1px solid var(--marrom-claro);
+}
+.lateral h1 { font-family: var(--titulo); font-size: clamp(2.8rem, 6.5vw, 5rem); letter-spacing: .04em; margin: 0 0 1.25rem; color: var(--ouro); }
+.lateral h1::after { content: ''; display: block; width: 5rem; height: 2px; margin-top: 1rem; background: linear-gradient(90deg, var(--ouro), transparent); }
+.lateral p { font-size: 1.35rem; max-width: 24ch; margin: 0; color: var(--suave); }
+
+.cartao { background: var(--marrom-escuro); padding: 2.5rem 2.25rem; display: flex; flex-direction: column; gap: 1rem; justify-content: center; }
+.cartao h2 { font-family: var(--titulo); font-weight: 500; font-size: 1.8rem; margin: 0 0 .25rem; color: var(--ouro-claro); }
+.requisitos { list-style: none; margin: -.25rem 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: .15rem .75rem; font-size: .9rem; color: var(--suave); }
+.requisitos .ok { color: var(--ok); font-weight: 700; }
 .rodape { margin: .5rem 0 0; color: var(--suave); }
 .rodape a { color: var(--ouro-claro); font-weight: 700; }
-.rodape a:focus-visible { outline: 2px solid var(--ouro); outline-offset: 2px; }
 
-@media (max-width: 800px) {
+/* ---------- Tela do jogo ---------- */
+.jogo { height: 100vh; display: flex; flex-direction: column; }
+
+.cabecalho {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  padding: .75rem 1rem;
+  background: var(--marrom-escuro);
+  border-bottom: 1px solid var(--marrom-claro);
+}
+.marca { margin: 0; font-family: var(--titulo); font-size: 1.6rem; color: var(--ouro); }
+.usuario-nome { position: absolute; right: 1rem; color: var(--suave); }
+
+.menu-btn {
+  position: absolute; left: 1rem;
+  display: flex; flex-direction: column; gap: 5px;
+  padding: .4rem; background: none; border: 0;
+}
+.menu-btn span { width: 26px; height: 3px; background: var(--ouro); border-radius: 2px; }
+
+.gaveta {
+  position: absolute; top: 100%; left: 0; z-index: 10;
+  min-width: 180px; padding: .75rem;
+  background: var(--marrom-escuro);
+  border: 1px solid var(--marrom-claro);
+}
+.gaveta button { width: 100%; padding: .5rem; text-align: left; background: none; border: 0; color: var(--texto); }
+.gaveta button:hover { color: var(--ouro-claro); }
+
+.mesa-jogo {
+  flex: 1; min-height: 0; width: 100%; max-width: 1200px; margin: 0 auto; padding: 1rem;
+  display: grid; grid-template-columns: 220px minmax(0, 1fr) 240px; gap: 1rem;
+}
+
+.painel { background: var(--marrom-escuro); border: 1px solid var(--marrom-claro); border-radius: 8px; padding: 1rem; align-self: start; }
+.painel h2 { margin: 0 0 .5rem; font-family: var(--titulo); font-size: 1.1rem; color: var(--ouro-claro); }
+.painel h3 { margin: 0 0 .5rem; }
+.painel p { margin: 0 0 .75rem; color: var(--suave); }
+
+.avatar {
+  width: 72px; height: 72px; margin: 0 0 .75rem; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--preto); border: 2px solid var(--ouro);
+  font-family: var(--titulo); font-size: 2rem; color: var(--ouro);
+}
+
+.status { margin-bottom: .6rem; }
+.status-texto { display: flex; justify-content: space-between; font-size: .9rem; margin-bottom: .2rem; }
+.barra { height: 10px; background: var(--preto); border-radius: 5px; overflow: hidden; }
+.barra-cheia { height: 100%; }
+.barra-cheia.vida { background: #6aa84f; }
+.barra-cheia.mana { background: #4a7fc1; }
+.barra-cheia.xp { background: var(--ouro); }
+
+.chat { display: flex; flex-direction: column; min-height: 0; background: var(--marrom-escuro); border: 1px solid var(--marrom-claro); border-radius: 8px; }
+.mensagens { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: .75rem; }
+.msg { max-width: 85%; padding: .6rem .85rem; border-radius: 8px; }
+.msg strong { font-size: .85rem; color: var(--ouro-claro); }
+.msg p { margin: .2rem 0 0; line-height: 1.4; }
+.msg.mestre { align-self: flex-start; background: var(--marrom); }
+.msg.jogador { align-self: flex-end; background: rgba(201, 162, 74, .15); border: 1px solid var(--ouro); }
+
+.chat-form { display: flex; gap: .5rem; padding: .75rem; border-top: 1px solid var(--marrom-claro); }
+.chat-form input { flex: 1; }
+
+@media (max-width: 900px) {
   .pagina { grid-template-columns: 1fr; }
   .lateral { padding: 2rem; border-right: 0; border-bottom: 1px solid var(--marrom-claro); }
   .lateral p { max-width: none; }
+
+  .jogo { height: auto; min-height: 100vh; }
+  .mesa-jogo { grid-template-columns: 1fr; }
+  .chat { order: -1; height: 70vh; }
 }
