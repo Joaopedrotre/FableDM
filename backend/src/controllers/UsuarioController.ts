@@ -19,9 +19,16 @@ export class UsuarioController {
 
     try {
       const usuario = await this.service.cadastrar(validacao.data);
+      // DTO explícito: campos privados (#) da entidade não são serializados
+      // automaticamente por JSON.stringify. CPF e hash não são retornados.
       res.status(201).json({
         mensagem: 'Usuário cadastrado com sucesso.',
-        usuario
+        usuario: {
+          id: usuario.id,
+          nome: usuario.nome,
+          email: usuario.email,
+          criadoEm: usuario.criadoEm
+        }
       });
     } catch (erro) {
       if (erro instanceof CadastroError) {

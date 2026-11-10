@@ -1,6 +1,6 @@
 import { database } from '../config/database.js';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2';
-import type { NovoUsuario, Usuario } from '../models/Usuario.js';
+import { Usuario, type NovoUsuario } from '../models/Usuario.js';
 
 interface UsuarioExistente extends RowDataPacket {
   email: string | null;
@@ -22,11 +22,18 @@ export class UsuarioRepository {
       [usuario.nome, usuario.email, usuario.cpf, usuario.senha_hash]
     );
 
-    const [linhas] = await database.execute<(Usuario & RowDataPacket)[]>(
+    const [linhas] = await database.execute<(RowDataPacket & { id: number; nome: string; email: string; cpf: string; criado_em: Date })[]>(
       'SELECT id, nome, email, cpf, criado_em FROM usuarios WHERE id = ?',
       [resultado.insertId]
     );
 
-    return linhas[0];
+    const linha = linhas[0];
+    return new Usuario({
+      id: linha.id,
+      nome: linha.nome,
+      email: linha.email,
+      cpf: linha.cpf,
+      criadoEm: linha.criado_em
+    });
   }
 }
