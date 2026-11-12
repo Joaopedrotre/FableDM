@@ -5,6 +5,10 @@ export const BYPASS_LOGIN_TESTE = true;
 
 export const CARACTERES_POR_SEGUNDO = 60;
 
+export const DURACAO_ROLAGEM_MS = 1400;
+export const DURACAO_RESULTADO_MS = 1000;
+export const MAXIMO_DADOS_POR_ROLAGEM = 10;
+
 export const LIMITE_CARACTERES_ACAO = 5000;
 
 export const ROTAS_API = {
