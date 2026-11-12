@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import LayoutAuth from '../components/LayoutAuth';
 import Campo from '../components/Campo';
 import Aviso from '../components/Aviso';
+import BotaoBypassLoginTeste from '../components/BotaoBypassLoginTeste';
 import { useAuth } from '../context/AuthContext';
 import { entrar, ErroApi } from '../services/api';
 import { validarEmail } from '../utils/validators';
@@ -52,6 +53,8 @@ export default function Login() {
         <button type="submit" className="botao" disabled={enviando}>
           {enviando ? 'Entrando…' : 'Entrar'}
         </button>
+
+        <BotaoBypassLoginTeste />
 
         <p className="rodape">
           Não tem conta? <Link to="/cadastro">Criar conta</Link>

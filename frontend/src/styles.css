@@ -28,6 +28,7 @@ button { font: inherit; cursor: pointer; }
 }
 .botao:hover:not(:disabled) { background: var(--ouro-claro); }
 .botao:disabled { opacity: .6; cursor: wait; }
+.botao-teste { background: transparent; color: var(--ouro-claro); border: 1px dashed var(--ouro-claro); }
 
 .campo { display: flex; flex-direction: column; gap: .3rem; }
 label { font-weight: 700; }
