@@ -177,3 +177,29 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--ouro-claro); ou
 @media (prefers-reduced-motion: reduce) {
   .dados-overlay, .dado-svg.rolando, .dado-svg.rolando .dado-corpo, .dados-palco.resultado .dado-svg, .dados-total { animation: none; }
 }
+
+/* ---------- Meu perfil ---------- */
+.campo input:disabled { opacity: .6; cursor: not-allowed; }
+.dica { margin: 0; font-size: .85rem; color: var(--suave); }
+.perfil-acoes { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+.perfil-acoes .botao-secundario { background: transparent; color: var(--ouro-claro); text-decoration: none; text-align: center; }
+/* No hover o fundo fica dourado, então o texto passa a ser escuro para continuar legível */
+.perfil-acoes .botao-secundario:hover { background: var(--ouro-claro); color: var(--preto); }
+
+/* Perfil centralizado: marca no topo, cartão no meio da página */
+.pagina-centro { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+.pagina-centro .lateral { align-items: center; text-align: center; padding: 2rem 1rem 1.5rem; border-right: 0; border-bottom: 1px solid var(--marrom-claro); }
+.pagina-centro .lateral h1 { font-size: clamp(2rem, 4vw, 3rem); margin-bottom: .5rem; }
+.pagina-centro .lateral h1::after { margin-left: auto; margin-right: auto; background: linear-gradient(90deg, transparent, var(--ouro), transparent); }
+.pagina-centro .lateral p { font-size: 1.1rem; max-width: none; }
+.pagina-centro .cartao-centro {
+  width: min(32rem, calc(100% - 2rem));
+  margin: 2rem auto;
+  align-self: center;
+  border: 1px solid var(--marrom-claro);
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, .45);
+}
+@media (max-width: 520px) {
+  .pagina-centro .cartao-centro { padding: 1.75rem 1.25rem; margin: 1rem auto; }
+}

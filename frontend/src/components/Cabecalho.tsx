@@ -8,6 +8,11 @@ export default function Cabecalho() {
   const { usuario, sair } = useAuth();
   const navigate = useNavigate();
 
+  function irParaPerfil() {
+    setAberto(false);
+    navigate('/perfil');
+  }
+
   function aoSair() {
     sair();
     navigate('/login');
@@ -32,6 +37,9 @@ export default function Cabecalho() {
 
       {aberto && (
         <nav className="gaveta">
+          <button type="button" onClick={irParaPerfil}>
+            Meu perfil
+          </button>
           <button type="button" onClick={aoSair}>
             Sair
           </button>

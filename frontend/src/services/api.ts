@@ -1,5 +1,5 @@
 import { API_URL, ROTAS_API } from '../config';
-import type { DadosCadastro, Mensagem, RespostaLogin, RespostaMestre } from '../types';
+import type { DadosCadastro, DadosEdicao, Mensagem, RespostaEdicao, RespostaLogin, RespostaMestre } from '../types';
 
 // Erro lançado quando a API (ou a conexão) falha.
 // "campos" guarda erros por campo, ex: { cpf: 'CPF inválido.' }
@@ -29,12 +29,20 @@ function lerErro(corpo: CorpoErro | null): ErroApi {
   return new ErroApi(geral, campos);
 }
 
-async function enviar<T>(rota: string, dados: unknown): Promise<T> {
+// Se houver token salvo, ele vai no cabeçalho Authorization (rotas autenticadas).
+function cabecalhos(): Record<string, string> {
+  const token = localStorage.getItem('token');
+  return token
+    ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+    : { 'Content-Type': 'application/json' };
+}
+
+async function enviar<T>(rota: string, dados: unknown, metodo: 'POST' | 'PUT' = 'POST'): Promise<T> {
   let resposta: Response;
   try {
     resposta = await fetch(`${API_URL}${rota}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: metodo,
+      headers: cabecalhos(),
       body: JSON.stringify(dados),
     });
   } catch {
@@ -50,6 +58,9 @@ export const cadastrarUsuario = (dados: DadosCadastro) => enviar<unknown>(ROTAS_
 
 export const entrar = (dados: { email: string; senha: string }) =>
   enviar<RespostaLogin>(ROTAS_API.login, dados);
+
+export const editarPerfil = (dados: DadosEdicao) =>
+  enviar<RespostaEdicao>(ROTAS_API.perfil, dados, 'PUT');
 
 export const perguntarAoMestre = (mensagens: Mensagem[]) =>
   enviar<RespostaMestre>(

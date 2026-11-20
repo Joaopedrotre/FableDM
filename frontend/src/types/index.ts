@@ -4,6 +4,7 @@ export interface UsuarioLogado {
   id: number;
   nome: string;
   email: string;
+  cpf?: string; // o back deve devolver o CPF no login para preencher o perfil
 }
 
 export interface RespostaLogin {
@@ -16,6 +17,18 @@ export interface DadosCadastro {
   email: string;
   cpf: string;
   senha: string;
+}
+
+// Edição do perfil: o e-mail não entra aqui porque não pode ser alterado.
+// Sem senha = a senha atual é mantida.
+export interface DadosEdicao {
+  nome: string;
+  cpf: string;
+  senha?: string;
+}
+
+export interface RespostaEdicao {
+  usuario: UsuarioLogado;
 }
 
 export interface Campanha {

@@ -14,5 +14,6 @@ export const LIMITE_CARACTERES_ACAO = 5000;
 export const ROTAS_API = {
   cadastro: '/usuarios',
   login: '/login', // ainda não existe no back end
+  perfil: '/usuarios/me', // PUT autenticado: o back identifica o usuário pelo token
   mestre: '/mestre/mensagem',
 };
