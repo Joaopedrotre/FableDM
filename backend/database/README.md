@@ -31,7 +31,7 @@ Em vez de conectar a API como `root`, crie um usuário próprio no MySQL. Entre 
 
 ```sql
 CREATE USER IF NOT EXISTS 'fabledm_app'@'localhost' IDENTIFIED BY 'defina_uma_senha_forte';
-GRANT SELECT, INSERT ON fabledm.usuarios TO 'fabledm_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE ON fabledm.usuarios TO 'fabledm_app'@'localhost';
 ```
 
 Se a API for executada em outra máquina ou container, ajuste o host do usuário MySQL e `DB_HOST` conforme a rede utilizada.
@@ -53,3 +53,17 @@ USE fabledm;
 DESCRIBE usuarios;
 SHOW INDEX FROM usuarios;
 ```
+
+No Docker Compose, o `schema.sql` é executado automaticamente na criação do volume do MySQL, e o usuário da aplicação recebe permissão sobre o banco `fabledm`.
+
+## Personagens, itens, campanhas e mensagens
+
+O arquivo `schema-jogo.sql` cria as tabelas `personagens`, `itens`, `campanhas` e `mensagens` e depende da tabela `usuarios`. Ele usa `CREATE TABLE IF NOT EXISTS` e pode ser executado mais de uma vez.
+
+Com Docker Compose, os dois arquivos só rodam quando o volume do MySQL é criado. Para adicionar as novas tabelas a um banco que já existe, sem apagar dados:
+
+```bash
+docker compose exec -T mysql sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" fabledm' < backend/database/schema-jogo.sql
+```
+
+Sem Docker, execute `schema.sql` e depois `schema-jogo.sql` no seu MySQL. Se o usuário da aplicação tiver permissões restritas, conceda também `SELECT, INSERT, UPDATE, DELETE` nas quatro tabelas novas.

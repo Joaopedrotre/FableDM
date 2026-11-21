@@ -1,5 +1,22 @@
 import { API_URL, ROTAS_API } from '../config';
-import type { DadosCadastro, Mensagem, RespostaLogin, RespostaMestre } from '../types';
+import type {
+  Campanha,
+  DadosCadastro,
+  DadosCampanha,
+  DadosEdicao,
+  DadosItem,
+  DadosPersonagem,
+  Item,
+  Mensagem,
+  Pagina,
+  Personagem,
+  RespostaAcao,
+  RespostaEdicao,
+  RespostaExclusao,
+  RespostaLogin,
+  RespostaMestre,
+  SessaoJogo,
+} from '../types';
 
 // Erro lançado quando a API (ou a conexão) falha.
 // "campos" guarda erros por campo, ex: { cpf: 'CPF inválido.' }
@@ -29,19 +46,38 @@ function lerErro(corpo: CorpoErro | null): ErroApi {
   return new ErroApi(geral, campos);
 }
 
-async function enviar<T>(rota: string, dados: unknown): Promise<T> {
+// Se houver token salvo, ele vai no cabeçalho Authorization (rotas autenticadas).
+function cabecalhos(): Record<string, string> {
+  const token = localStorage.getItem('token');
+  return token
+    ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+    : { 'Content-Type': 'application/json' };
+}
+
+const ROTAS_SEM_SESSAO: string[] = [ROTAS_API.login, ROTAS_API.loginTeste];
+
+type Metodo = 'GET' | 'POST' | 'PUT' | 'DELETE';
+
+async function enviar<T>(rota: string, dados?: unknown, metodo: Metodo = 'POST'): Promise<T> {
   let resposta: Response;
   try {
     resposta = await fetch(`${API_URL}${rota}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(dados),
+      method: metodo,
+      headers: cabecalhos(),
+      body: dados === undefined ? undefined : JSON.stringify(dados),
     });
   } catch {
     throw new ErroApi('Não foi possível conectar ao servidor. Verifique se a API está no ar.');
   }
 
   const corpo: unknown = await resposta.json().catch(() => null);
+
+  if (resposta.status === 401 && localStorage.getItem('token') && !ROTAS_SEM_SESSAO.includes(rota)) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
+    window.location.assign('/login');
+  }
+
   if (!resposta.ok) throw lerErro(corpo as CorpoErro | null);
   return corpo as T;
 }
@@ -51,8 +87,64 @@ export const cadastrarUsuario = (dados: DadosCadastro) => enviar<unknown>(ROTAS_
 export const entrar = (dados: { email: string; senha: string }) =>
   enviar<RespostaLogin>(ROTAS_API.login, dados);
 
+export const entrarComoTeste = () => enviar<RespostaLogin>(ROTAS_API.loginTeste, {});
+
+export const editarPerfil = (dados: DadosEdicao) =>
+  enviar<RespostaEdicao>(ROTAS_API.perfil, dados, 'PUT');
+
 export const perguntarAoMestre = (mensagens: Mensagem[]) =>
   enviar<RespostaMestre>(
     ROTAS_API.mestre,
     { mensagens: mensagens.map(({ autor, texto }) => ({ autor, texto })) }
   );
+
+const consulta = (pagina: number, limite: number) => `?pagina=${pagina}&limite=${limite}`;
+
+export const listarPersonagens = (pagina: number, limite = 6) =>
+  enviar<Pagina<Personagem>>(`${ROTAS_API.personagens}${consulta(pagina, limite)}`, undefined, 'GET');
+
+export const buscarPersonagem = (id: number) =>
+  enviar<Personagem>(`${ROTAS_API.personagens}/${id}`, undefined, 'GET');
+
+export const criarPersonagem = (dados: DadosPersonagem) => enviar<Personagem>(ROTAS_API.personagens, dados);
+
+export const editarPersonagem = (id: number, dados: DadosPersonagem) =>
+  enviar<Personagem>(`${ROTAS_API.personagens}/${id}`, dados, 'PUT');
+
+export const excluirPersonagem = (id: number) =>
+  enviar<RespostaExclusao>(`${ROTAS_API.personagens}/${id}`, undefined, 'DELETE');
+
+export const listarItens = (personagemId: number, pagina: number, limite = 8) =>
+  enviar<Pagina<Item>>(`${ROTAS_API.personagens}/${personagemId}/itens${consulta(pagina, limite)}`, undefined, 'GET');
+
+export const buscarItem = (personagemId: number, itemId: number) =>
+  enviar<Item>(`${ROTAS_API.personagens}/${personagemId}/itens/${itemId}`, undefined, 'GET');
+
+export const criarItem = (personagemId: number, dados: DadosItem) =>
+  enviar<Item>(`${ROTAS_API.personagens}/${personagemId}/itens`, dados);
+
+export const editarItem = (personagemId: number, itemId: number, dados: DadosItem) =>
+  enviar<Item>(`${ROTAS_API.personagens}/${personagemId}/itens/${itemId}`, dados, 'PUT');
+
+export const excluirItem = (personagemId: number, itemId: number) =>
+  enviar<RespostaExclusao>(`${ROTAS_API.personagens}/${personagemId}/itens/${itemId}`, undefined, 'DELETE');
+
+export const listarCampanhas = (pagina: number, limite = 6) =>
+  enviar<Pagina<Campanha>>(`${ROTAS_API.campanhas}${consulta(pagina, limite)}`, undefined, 'GET');
+
+export const buscarCampanha = (id: number) =>
+  enviar<Campanha>(`${ROTAS_API.campanhas}/${id}`, undefined, 'GET');
+
+export const criarCampanha = (dados: DadosCampanha) => enviar<Campanha>(ROTAS_API.campanhas, dados);
+
+export const editarCampanha = (id: number, dados: DadosCampanha) =>
+  enviar<Campanha>(`${ROTAS_API.campanhas}/${id}`, dados, 'PUT');
+
+export const excluirCampanha = (id: number) =>
+  enviar<RespostaExclusao>(`${ROTAS_API.campanhas}/${id}`, undefined, 'DELETE');
+
+export const obterSessao = (campanhaId: number) =>
+  enviar<SessaoJogo>(`${ROTAS_API.campanhas}/${campanhaId}/sessao`, undefined, 'GET');
+
+export const enviarAcao = (campanhaId: number, texto: string) =>
+  enviar<RespostaAcao>(`${ROTAS_API.campanhas}/${campanhaId}/mensagens`, { texto });

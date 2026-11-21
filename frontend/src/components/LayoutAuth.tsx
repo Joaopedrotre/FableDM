@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
 
 // Moldura das telas de cadastro e login: marca à esquerda e formulário à direita.
-export default function LayoutAuth({ children }: { children: ReactNode }) {
+// Com `centralizado`, a marca fica no topo e o formulário no meio da página (usado no perfil).
+export default function LayoutAuth({ children, centralizado = false }: { children: ReactNode; centralizado?: boolean }) {
   return (
-    <main className="pagina">
+    <main className={centralizado ? 'pagina pagina-centro' : 'pagina'}>
       <aside className="lateral">
         <h1>FableDM</h1>
         <p>Sua mesa de RPG, com um mestre que nunca falta à sessão.</p>

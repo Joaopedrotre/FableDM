@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { UsuarioRepository } from '../repositories/UsuarioRepository.js';
-import type { CadastroUsuarioInput } from '../validators/usuarioValidator.js';
+import type { CadastroUsuarioInput, EdicaoUsuarioInput } from '../validators/usuarioValidator.js';
 
 export class UsuarioService {
   constructor(private readonly repository = new UsuarioRepository()) {}
@@ -23,6 +23,31 @@ export class UsuarioService {
       cpf: dados.cpf,
       senha_hash
     });
+  }
+
+  async editar(id: number, dados: EdicaoUsuarioInput) {
+    if (await this.repository.cpfPertenceAOutro(dados.cpf, id)) {
+      throw new CadastroError('Este CPF já está cadastrado.', 'cpf');
+    }
+
+    const senha_hash = dados.senha ? await bcrypt.hash(dados.senha, 12) : undefined;
+    const atualizado = await this.repository.atualizar(id, {
+      nome: dados.nome.replace(/\s+/g, ' '),
+      cpf: dados.cpf,
+      senha_hash
+    });
+
+    if (!atualizado) {
+      throw new UsuarioNaoEncontradoError();
+    }
+    return atualizado;
+  }
+}
+
+export class UsuarioNaoEncontradoError extends Error {
+  constructor() {
+    super('Usuário não encontrado.');
+    this.name = 'UsuarioNaoEncontradoError';
   }
 }
 

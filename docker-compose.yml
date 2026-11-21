@@ -1,0 +1,97 @@
+name: fabledm
+
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: fabledm-nginx
+    restart: unless-stopped
+    ports:
+      - "${NGINX_PORT:-8080}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      frontend:
+        condition: service_started
+      backend:
+        condition: service_healthy
+    networks:
+      - proxy-net
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: /api
+        VITE_TESTE_LOGIN: ${TEST_ACCOUNT_ENABLED:-false}
+    container_name: fabledm-frontend
+    restart: unless-stopped
+    networks:
+      - proxy-net
+
+  backend:
+    build:
+      context: ./backend
+    container_name: fabledm-backend
+    restart: unless-stopped
+    environment:
+      PORT: "3000"
+      NODE_ENV: production
+      FRONTEND_ORIGIN: http://localhost:${NGINX_PORT:-8080}
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_USER: ${MYSQL_USER:-fabledm_app}
+      DB_PASSWORD: ${MYSQL_PASSWORD:?defina MYSQL_PASSWORD no arquivo .env}
+      DB_NAME: fabledm
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no arquivo .env}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1d}
+      TEST_ACCOUNT_ENABLED: ${TEST_ACCOUNT_ENABLED:-false}
+      LLM_PROVIDER: ${LLM_PROVIDER:-anthropic}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-claude-haiku-5-5}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_MAX_TOKENS: ${LLM_MAX_TOKENS:-600}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/saude || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    networks:
+      - proxy-net
+      - db-net
+
+  mysql:
+    image: mysql:8.4
+    container_name: fabledm-mysql
+    restart: unless-stopped
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?defina MYSQL_ROOT_PASSWORD no arquivo .env}
+      MYSQL_DATABASE: fabledm
+      MYSQL_USER: ${MYSQL_USER:-fabledm_app}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?defina MYSQL_PASSWORD no arquivo .env}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./backend/database/schema-jogo.sql:/docker-entrypoint-initdb.d/02-jogo.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_ROOT_PASSWORD mysqladmin ping -h 127.0.0.1 -uroot --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - db-net
+
+networks:
+  proxy-net:
+    driver: bridge
+  db-net:
+    driver: bridge
+    internal: true
+
+volumes:
+  mysql_data:

@@ -1,6 +1,7 @@
 import { criarProvider } from '../providers/index.js';
 import { ProvedorError, type LLMProvider, type MensagemLLM } from '../providers/LLMProvider.js';
 import { removerRaciocinio } from './removerRaciocinio.js';
+import { montarContextoDoMestre, type ContextoJogo } from './contextoDoMestre.js';
 import type { MensagemMestreInput } from '../validators/mestreValidator.js';
 
 const LIMITE_HISTORICO = 20;
@@ -20,11 +21,12 @@ const PROMPT_SISTEMA = [
 export class MestreService {
   constructor(private readonly provider: LLMProvider = criarProvider()) {}
 
-  async responder(mensagens: MensagemMestreInput[]): Promise<string> {
+  async responder(mensagens: MensagemMestreInput[], contexto?: ContextoJogo): Promise<string> {
     const { abertura, historico } = this.prepararHistorico(mensagens);
+    const base = contexto ? `${PROMPT_SISTEMA}\n\n${montarContextoDoMestre(contexto)}` : PROMPT_SISTEMA;
     const sistema = abertura
-      ? `${PROMPT_SISTEMA}\n\nAbertura da aventura, já narrada ao jogador:\n${abertura}`
-      : PROMPT_SISTEMA;
+      ? `${base}\n\nAbertura da aventura, já narrada ao jogador:\n${abertura}`
+      : base;
     const bruta = await this.provider.gerar(sistema, historico);
     const resposta = removerRaciocinio(bruta);
     if (!resposta) throw new ProvedorError('O provedor de IA retornou uma resposta vazia.', 502);

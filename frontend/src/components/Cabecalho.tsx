@@ -2,11 +2,21 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-// Barra do topo: menu hambúrguer, nome do site e usuário logado.
+const OPCOES_DO_MENU = [
+  { rotulo: 'Campanhas', caminho: '/campanhas' },
+  { rotulo: 'Personagens', caminho: '/personagens' },
+  { rotulo: 'Meu perfil', caminho: '/perfil' },
+];
+
 export default function Cabecalho() {
   const [aberto, setAberto] = useState(false);
   const { usuario, sair } = useAuth();
   const navigate = useNavigate();
+
+  function irPara(caminho: string) {
+    setAberto(false);
+    navigate(caminho);
+  }
 
   function aoSair() {
     sair();
@@ -31,7 +41,12 @@ export default function Cabecalho() {
       <span className="usuario-nome">{usuario?.nome}</span>
 
       {aberto && (
-        <nav className="gaveta">
+        <nav className="gaveta" aria-label="Menu principal">
+          {OPCOES_DO_MENU.map((opcao) => (
+            <button key={opcao.caminho} type="button" onClick={() => irPara(opcao.caminho)}>
+              {opcao.rotulo}
+            </button>
+          ))}
           <button type="button" onClick={aoSair}>
             Sair
           </button>

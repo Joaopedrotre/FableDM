@@ -7,6 +7,7 @@ interface Auth {
   usuario: UsuarioLogado | null;
   entrar: (token: string, usuario: UsuarioLogado) => void;
   sair: () => void;
+  atualizar: (usuario: UsuarioLogado) => void; // depois de editar o perfil
 }
 
 const AuthContext = createContext<Auth | null>(null);
@@ -29,13 +30,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUsuario(dados);
   }
 
+  function atualizar(dados: UsuarioLogado) {
+    localStorage.setItem('usuario', JSON.stringify(dados));
+    setUsuario(dados);
+  }
+
   function sair() {
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
     setUsuario(null);
   }
 
-  return <AuthContext.Provider value={{ usuario, entrar, sair }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ usuario, entrar, sair, atualizar }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth(): Auth {

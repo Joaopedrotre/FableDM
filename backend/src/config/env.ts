@@ -6,6 +6,12 @@ const schema = z
     PORT: z.coerce.number().int().positive().default(3000),
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
     FRONTEND_ORIGIN: z.string().url().default('http://localhost:5173'),
+    JWT_SECRET: z.string().min(32, 'JWT_SECRET deve ter ao menos 32 caracteres.'),
+    JWT_EXPIRES_IN: z.string().min(1).default('1d'),
+    TEST_ACCOUNT_ENABLED: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((valor) => valor === 'true'),
     DB_HOST: z.string().min(1),
     DB_PORT: z.coerce.number().int().positive().default(3306),
     DB_USER: z.string().min(1),

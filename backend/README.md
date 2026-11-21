@@ -12,7 +12,9 @@ API com o cadastro de usuário e o chat com o Mestre de Jogo (LLM). Foi organiza
 
 Chat com o mestre: `POST /mestre/mensagem` conversa com um provedor de LLM (veja a seção abaixo).
 
-Ainda não estão implementados: login, JWT, edição de perfil, campanhas, personagens, NPCs, locais e persistência das mensagens.
+Também estão implementados: login com JWT (`POST /login`), edição de perfil (`PUT /usuarios/me`), login rápido da conta de teste (`POST /login/teste`, desativado por padrão), contas de demonstração e `GET /saude`. O chat com o Mestre exige JWT.
+
+Ainda não estão implementados: campanhas, personagens, NPCs, locais e persistência das mensagens.
 
 ## Organização e Tech Forge
 
@@ -78,6 +80,24 @@ Validação (`400`) e duplicidade (`409`) retornam `erros` como uma lista de obj
 
 A senha nunca é devolvida pela API; somente seu hash é armazenado no banco. O CPF também não é incluído na resposta de sucesso.
 
+## Autenticação
+
+| Variável | Descrição |
+|---|---|
+| `JWT_SECRET` | Segredo de assinatura (HS256), no mínimo 32 caracteres. Fica somente no `.env` |
+| `JWT_EXPIRES_IN` | Validade do token (padrão `1d`) |
+| `TEST_ACCOUNT_ENABLED` | `true` cria as contas de demonstração ao iniciar e habilita `POST /login/teste`. Padrão `false` |
+
+Contas de demonstração (fictícias) ficam em `src/config/contasDemonstracao.ts`. O frontend guarda o token no `localStorage` e o envia em `Authorization: Bearer <token>`.
+
+### `POST /login`
+
+Corpo `{ "email", "senha" }`. Sucesso (`200`): `{ "token": "...", "usuario": { "id", "nome", "email", "cpf" } }`. E-mail inexistente e senha errada retornam a mesma resposta `401` com `{ "mensagem": "E-mail ou senha incorretos." }`.
+
+### `PUT /usuarios/me`
+
+Exige JWT. Corpo `{ "nome", "cpf", "senha"? }`; sem `senha`, a atual é mantida. Enviar `email` retorna `400`. CPF de outro usuário retorna `409`. Sucesso (`200`): `{ "mensagem", "usuario": { "id", "nome", "email", "cpf" } }`.
+
 ## Chat com o Mestre (LLM)
 
 ### Variáveis de ambiente
@@ -117,18 +137,13 @@ Sucesso (`200`):
 { "resposta": "Texto narrado pelo mestre." }
 ```
 
-Erros: `400` com `erros` (validação), `429` quando o provedor limita as requisições e `502` quando o provedor falha; ambos com `{ "mensagem": "..." }`. Os detalhes do erro do provedor aparecem só no log do servidor.
+Erros: `401` sem JWT válido, `400` com `erros` (validação), `429` quando o provedor limita as requisições e `502` quando o provedor falha; ambos com `{ "mensagem": "..." }`. Os detalhes do erro do provedor aparecem só no log do servidor.
 
-Teste rápido:
+Teste rápido (substitua `TOKEN` pelo token devolvido por `POST /login`):
 
 ```bash
 curl -X POST http://localhost:3000/mestre/mensagem \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer TOKEN" \
   -d '{"mensagens":[{"autor":"jogador","texto":"Abro a porta da masmorra."}]}'
-```
-
-Para abrir `/jogo` sem login (o endpoint de login ainda não existe), rode no console do navegador:
-
-```js
-localStorage.setItem('usuario', JSON.stringify({ id: 1, nome: 'Teste', email: 'teste@teste.com' }))
 ```

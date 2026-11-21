@@ -57,3 +57,25 @@ export function validarConfirmacao(senha: string, confirmacao: string): string {
   if (!confirmacao) return 'Repita a senha.';
   return senha === confirmacao ? '' : 'As senhas não coincidem.';
 }
+
+interface RegrasTexto {
+  obrigatorio: string;
+  minimo?: number;
+  maximo: number;
+}
+
+export function validarTexto(valor: string, { obrigatorio, minimo = 1, maximo }: RegrasTexto): string {
+  const limpo = valor.trim();
+  if (!limpo) return obrigatorio;
+  if (limpo.length < minimo) return `Use ao menos ${minimo} caracteres.`;
+  if (limpo.length > maximo) return `Use no máximo ${maximo} caracteres.`;
+  return '';
+}
+
+export function validarQuantidade(valor: string): string {
+  if (!valor.trim()) return 'Informe a quantidade.';
+  const numero = Number(valor);
+  if (!Number.isInteger(numero)) return 'A quantidade deve ser um número inteiro.';
+  if (numero < 1 || numero > 999) return 'A quantidade deve estar entre 1 e 999.';
+  return '';
+}

@@ -1,20 +1,53 @@
-import type { Personagem } from '../types';
-import BarraStatus from './BarraStatus';
+import { Link } from 'react-router-dom';
+import type { Item, Personagem } from '../types';
+import Avatar from './Avatar';
 
-// Coluna da direita: personagem usado na campanha.
-export default function PainelPersonagem({ personagem }: { personagem: Personagem }) {
+interface Props {
+  campanhaId: number;
+  personagem: Personagem | null;
+  itens: Item[];
+  totalItens: number;
+}
+
+export default function PainelPersonagem({ campanhaId, personagem, itens, totalItens }: Props) {
+  if (!personagem) {
+    return (
+      <aside className="painel">
+        <h2>Personagem</h2>
+        <p>Nenhum personagem vinculado a esta campanha.</p>
+        <Link to={`/campanhas/${campanhaId}/editar`} className="painel-link">
+          Escolher um personagem
+        </Link>
+      </aside>
+    );
+  }
+
+  const restantes = totalItens - itens.length;
+
   return (
     <aside className="painel">
-      <div className="avatar" aria-hidden="true">
-        {personagem.nome[0]}
-      </div>
+      <Avatar nome={personagem.nome} imagem={personagem.imagem} />
       <h2>{personagem.nome}</h2>
-      <p>
-        {personagem.classe} · Nível {personagem.nivel}
-      </p>
-      <BarraStatus rotulo="Vida" valor={personagem.vida} max={personagem.vidaMax} cor="vida" />
-      <BarraStatus rotulo="Mana" valor={personagem.mana} max={personagem.manaMax} cor="mana" />
-      <BarraStatus rotulo="XP" valor={personagem.xp} max={personagem.xpMax} cor="xp" />
+      <p className="painel-texto">{personagem.descricao}</p>
+
+      <h3>Itens</h3>
+      {itens.length === 0 ? (
+        <p>Nenhum item no inventário.</p>
+      ) : (
+        <ul className="lista-itens">
+          {itens.map((item) => (
+            <li key={item.id} title={item.descricao || undefined}>
+              <span>{item.nome}</span>
+              <span>×{item.quantidade}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {restantes > 0 && <p className="dica">e mais {restantes} item(ns)</p>}
+
+      <Link to={`/personagens/${personagem.id}/itens`} className="painel-link">
+        Gerenciar itens
+      </Link>
     </aside>
   );
 }
