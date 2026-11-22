@@ -45,11 +45,13 @@ services:
       JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no arquivo .env}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1d}
       TEST_ACCOUNT_ENABLED: ${TEST_ACCOUNT_ENABLED:-false}
-      LLM_PROVIDER: ${LLM_PROVIDER:-anthropic}
-      LLM_API_KEY: ${LLM_API_KEY:-}
-      LLM_MODEL: ${LLM_MODEL:-claude-haiku-5-5}
+      LLM_PROVIDER: ${LLM_PROVIDER:-openrouter}
+      LLM_API_KEY: ${LLM_API_KEY:?defina LLM_API_KEY (chave do OpenRouter) no arquivo .env}
+      LLM_MODEL: ${LLM_MODEL:-nvidia/nemotron-3-ultra-550b-a55b}
       LLM_BASE_URL: ${LLM_BASE_URL:-}
-      LLM_MAX_TOKENS: ${LLM_MAX_TOKENS:-600}
+      LLM_MAX_TOKENS: ${LLM_MAX_TOKENS:-1200}
+      LLM_REASONING: ${LLM_REASONING:-off}
+      LLM_TIMEOUT_MS: ${LLM_TIMEOUT_MS:-60000}
     depends_on:
       mysql:
         condition: service_healthy
@@ -76,7 +78,6 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./backend/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
-      - ./backend/database/schema-jogo.sql:/docker-entrypoint-initdb.d/02-jogo.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_ROOT_PASSWORD mysqladmin ping -h 127.0.0.1 -uroot --silent"]
       interval: 10s

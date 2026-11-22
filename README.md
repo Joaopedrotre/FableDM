@@ -69,16 +69,40 @@ O Nginx encaminha `/` para o frontend e `/api/` para o backend, removendo o pref
 | `GET/POST /personagens`, `GET/PUT/DELETE /personagens/:id` | JWT | CRUD de personagens (nome, descrição, imagem), lista paginada |
 | `GET/POST /personagens/:id/itens`, `GET/PUT/DELETE /personagens/:id/itens/:itemId` | JWT | CRUD de itens do personagem, lista paginada |
 | `GET/POST /campanhas`, `GET/PUT/DELETE /campanhas/:id` | JWT | CRUD de campanhas, lista paginada |
-| `GET /campanhas/:id/sessao` | JWT | Campanha, personagem, itens e histórico para abrir a tela de jogo |
-| `POST /campanhas/:id/mensagens` | JWT | Envia uma ação; o backend monta o contexto, chama o LLM e grava as duas mensagens |
+| `GET/POST /historias`, `GET/PUT/DELETE /historias/:id` | JWT | CRUD de histórias (título, resumo, campanha), lista paginada com filtro opcional `?campanhaId=` |
+| `GET /historias/:id/sessao` | JWT | História, campanha, personagem, itens e as últimas 100 mensagens para abrir a tela de jogo |
+| `GET /historias/:id/mensagens?antesDe=` | JWT | Mensagens mais antigas que a de id informado (50 por vez) |
+| `POST /historias/:id/mensagens` | JWT | Envia uma ação: salva a ação, monta o contexto, chama o LLM e salva a resposta |
 
 Fora do Docker, as mesmas rotas ficam em `http://localhost:3000` e o frontend usa `VITE_API_URL`.
 
-## Campanhas, personagens e itens
+## Modelo de IA: Nemotron 3 Ultra via OpenRouter
 
-O menu hambúrguer tem as opções **Campanhas** e **Personagens**. Cada campanha tem o botão **Continuar aventura**, que abre `/jogo/:id` com todo o histórico salvo. Cada personagem tem o botão **Itens**, que abre o inventário dele logo abaixo do resumo do personagem. A descrição da campanha, a descrição do personagem e o inventário são enviados ao mestre a cada ação, e o histórico fica salvo no banco.
+O mestre usa o modelo `nvidia/nemotron-3-ultra-550b-a55b` pelo OpenRouter.
 
-Se o volume do MySQL já existia antes desta versão, as novas tabelas não são criadas sozinhas. Rode `docker compose down -v` (apaga os dados; as contas de demonstração são recriadas) ou execute o `schema-jogo.sql` conforme `backend/database/README.md`.
+1. Crie uma conta em `openrouter.ai`, adicione créditos e gere uma chave em `openrouter.ai/keys`.
+2. Cole a chave em `LLM_API_KEY` no `.env`. A chave fica só no backend, nunca vai para o navegador, para o git nem para conversas.
+3. Mantenha `LLM_PROVIDER=openrouter` e `LLM_MODEL=nvidia/nemotron-3-ultra-550b-a55b`.
+4. Suba os serviços e teste a conexão: `docker compose exec backend node dist/scripts/testarLlm.js`. A saída mostra o modelo, o tempo e uma frase do mestre; erros mostram só a mensagem, nunca a chave.
+
+Pontos de atenção:
+
+- **Raciocínio:** o modelo raciocina por padrão. O projeto vem com `LLM_REASONING=off` para respostas mais rápidas e baratas. Se você ligar (`medium` ou `high`), aumente `LLM_MAX_TOKENS` (por exemplo, 4000), porque os tokens de raciocínio contam no limite e podem consumir tudo antes do texto final.
+- **Variante gratuita:** `nvidia/nemotron-3-ultra-550b-a55b:free` existe, com limite de requisições. Antes de usá-la com histórias de jogadores reais, leia a política de dados do OpenRouter para modelos gratuitos.
+- **Custo:** os preços variam por provedor e mudam; confira em `openrouter.ai/nvidia/nemotron-3-ultra-550b-a55b`. Cada ação envia o prompt, o contexto e até 20 mensagens do histórico.
+- **Erros comuns:** `401` é chave inválida, `402` é falta de créditos e `429` é limite de requisições. Os detalhes aparecem em `docker compose logs backend`.
+
+## Campanhas, personagens, itens e histórias
+
+O menu hambúrguer tem as opções **Campanhas**, **Personagens**, **Histórias** e **Meu perfil**.
+
+- Uma **campanha** tem nome, descrição e, opcionalmente, um personagem. O botão **Continuar aventura** abre a história mais recente dela.
+- Uma **história** guarda todas as mensagens de uma sessão de jogo (suas ações e as respostas do mestre). Cada mensagem é salva no banco assim que é enviada, então você retoma de onde parou, mesmo depois de fechar o navegador. A tela de jogo mostra as últimas 100 mensagens e o botão **Carregar mensagens anteriores** traz as mais antigas. Uma campanha pode ter várias histórias, e o resumo opcional da história é enviado ao mestre como contexto.
+- Um **personagem** tem nome, imagem e descrição, e seus **itens** ficam logo abaixo dele, na página de itens.
+
+A cada ação, o backend envia ao mestre a descrição da campanha, o resumo da história, a descrição do personagem, o inventário e as últimas mensagens. A ação do jogador fica salva mesmo se o mestre falhar em responder.
+
+Se o volume do MySQL já existia antes desta versão, as novas tabelas não são criadas sozinhas e a tabela `mensagens` mudou de formato. Rode `docker compose down -v` (apaga os dados; as contas de demonstração são recriadas).
 
 ## Problemas comuns
 

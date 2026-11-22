@@ -82,6 +82,28 @@ export interface DadosCampanha {
   personagemId: number | null;
 }
 
+export interface Historia {
+  id: number;
+  campanhaId: number;
+  campanhaNome: string;
+  titulo: string;
+  resumo: string;
+  totalMensagens: number;
+  criadoEm: string;
+  atualizadaEm: string;
+}
+
+export interface DadosNovaHistoria {
+  campanhaId: number;
+  titulo: string;
+  resumo: string;
+}
+
+export interface DadosEdicaoHistoria {
+  titulo: string;
+  resumo: string;
+}
+
 export interface RespostaExclusao {
   mensagem: string;
 }
@@ -98,10 +120,15 @@ export interface Mensagem {
 }
 
 export interface SessaoJogo {
+  historia: Historia;
   campanha: Campanha;
   personagem: Personagem | null;
   itens: Item[];
   totalItens: number;
+  mensagens: Mensagem[];
+}
+
+export interface RespostaMensagensAnteriores {
   mensagens: Mensagem[];
 }
 

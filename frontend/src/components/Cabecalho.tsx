@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 const OPCOES_DO_MENU = [
   { rotulo: 'Campanhas', caminho: '/campanhas' },
   { rotulo: 'Personagens', caminho: '/personagens' },
+  { rotulo: 'Histórias', caminho: '/historias' },
   { rotulo: 'Meu perfil', caminho: '/perfil' },
 ];
 

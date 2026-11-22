@@ -36,8 +36,7 @@ Fable é também o nome do agente principal: o site e o Dungeon Master de IA com
 │   └── nginx.conf
 ├── backend/
 │   ├── database/
-│   │   ├── schema.sql
-│   │   └── schema-jogo.sql
+│   │   └── schema.sql
 │   └── src/
 │       ├── config/
 │       ├── controllers/
@@ -65,13 +64,13 @@ Fable é também o nome do agente principal: o site e o Dungeon Master de IA com
 
 ## 2. Prioridades
 
-Já funcionam de ponta a ponta: infraestrutura (Docker Compose, Nginx, MySQL), cadastro, login com JWT, edição de perfil, conta de teste com acesso rápido, CRUDs de personagens, itens e campanhas (com paginação), histórico de mensagens persistido por campanha e chat com o Mestre usando o contexto da campanha, do personagem e dos itens.
+Já funcionam de ponta a ponta: infraestrutura (Docker Compose, Nginx, MySQL), cadastro, login com JWT, edição de perfil, conta de teste com acesso rápido, os quatro CRUDs exigidos (personagens, itens, campanhas e histórias, todos paginados), mensagens persistidas por história e chat com o Mestre (Nemotron 3 Ultra via OpenRouter) usando o contexto da campanha, do resumo da história, do personagem e dos itens.
 
 Ordem do que falta, guiada pelos pesos da rubrica:
 
-1. O quarto CRUD (NPCs ou locais). A rubrica exige 4 CRUDs completos; hoje existem 3 (personagens, itens e campanhas).
-2. Persona do produto e demonstração de cada requisito da rubrica.
-3. Polimento visual e acessibilidade.
+1. Persona do produto e demonstração de cada requisito da rubrica.
+2. Polimento visual e acessibilidade.
+3. Opcionais: NPCs e locais, resumo automático do histórico antigo.
 
 A integração com LLM não pontua isoladamente na rubrica. Mantenha-a mínima.
 
@@ -130,7 +129,7 @@ A integração com LLM não pontua isoladamente na rubrica. Mantenha-a mínima.
 **Regras:**
 
 - Rotas existentes: `POST /usuarios` (cadastro), `POST /login`, `POST /login/teste` (só com `TEST_ACCOUNT_ENABLED=true`), `PUT /usuarios/me`, `POST /mestre/mensagem` e `GET /saude`. O Nginx expõe a API em `/api`, removendo o prefixo.
-- CRUDs existentes, todos com JWT: `/personagens`, `/personagens/:id/itens` e `/campanhas` (GET lista paginada, GET `:id`, POST, PUT e DELETE), mais `GET /campanhas/:id/sessao` e `POST /campanhas/:id/mensagens`. Falta o quarto CRUD (`/npcs` ou `/locais`).
+- CRUDs existentes, todos com JWT: `/personagens`, `/personagens/:id/itens`, `/campanhas` e `/historias` (GET lista paginada, GET `:id`, POST, PUT e DELETE), mais `/historias` (CRUD), `GET /historias/:id/sessao`, `GET /historias/:id/mensagens` e `POST /historias/:id/mensagens`.
 - Paginação por `?pagina=` e `?limite=` (padrão 10, máximo 50), com resposta `{ dados, pagina, limite, total, totalPaginas }`.
 - O recurso de outro usuário e o recurso inexistente retornam o mesmo 404.
 - Todas as rotas de CRUD, de edição de usuário, da campanha e do Mestre exigem JWT (`autenticar`).
@@ -143,7 +142,7 @@ A integração com LLM não pontua isoladamente na rubrica. Mantenha-a mínima.
 - Senha com `bcryptjs`, coluna `senha_hash`, nunca retornada nem registrada em log. Login com e-mail inexistente ou senha errada retorna 401 genérico, com tempo de resposta equalizado.
 - JWT HS256 assinado com `JWT_SECRET` (mínimo de 32 caracteres, vindo do ambiente) e com expiração em `JWT_EXPIRES_IN`.
 - A conta de teste e as contas de demonstração só existem com `TEST_ACCOUNT_ENABLED=true`. Nunca habilite essa variável em ambiente público.
-- Relacionamentos reais com chaves estrangeiras: `personagens.usuario_id`, `itens.personagem_id`, `campanhas.usuario_id`, `campanhas.personagem_id` (opcional, `ON DELETE SET NULL`) e `mensagens.campanha_id`. A exclusão de personagem apaga seus itens e a de campanha apaga suas mensagens (`ON DELETE CASCADE`). Alterações de schema vão em arquivos `.sql` versionados em `backend/database/`; o `docker-compose.yml` executa `schema.sql` e `schema-jogo.sql` apenas na criação do volume do MySQL.
+- Relacionamentos reais com chaves estrangeiras: `personagens.usuario_id`, `itens.personagem_id`, `campanhas.usuario_id`, `campanhas.personagem_id` (opcional, `ON DELETE SET NULL`), `historias.campanha_id` e `mensagens.historia_id`. A exclusão de personagem apaga seus itens, a de campanha apaga suas histórias e a de história apaga suas mensagens (`ON DELETE CASCADE`). Alterações de schema vão em arquivos `.sql` versionados em `backend/database/`; o `docker-compose.yml` executa `schema.sql` (que contém todas as tabelas) apenas na criação do volume do MySQL.
 - Consultas SQL sempre parametrizadas.
 - Docker Compose: serviços `nginx`, `frontend`, `backend` e `mysql`; rede `proxy-net` para Nginx, frontend e backend e rede `db-net` (interna) para backend e MySQL; somente o Nginx publica portas; volume nomeado para o MySQL; variáveis vindas do `.env`; `depends_on` com healthcheck. O Nginx encaminha `/` para o frontend e `/api` para o backend.
 
@@ -183,13 +182,13 @@ A integração com LLM não pontua isoladamente na rubrica. Mantenha-a mínima.
 **Regras:**
 
 - O DM de IA se chama Fable. Ao evoluir o prompt de sistema do narrador, identifique-o como Fable, sem usar o nome do provedor ou do modelo como identidade. Se o jogador perguntar sinceramente, Fable não nega ser uma IA.
-- `MestreService` depende apenas da interface `LLMProvider`. Trocar de provedor não exige alterar o serviço. Os provedores existentes são `AnthropicProvider` e `OpenAIProvider`, escolhidos por `LLM_PROVIDER`.
+- `MestreService` depende apenas da interface `LLMProvider`. Trocar de provedor não exige alterar o serviço. Os provedores existentes são `OpenRouterProvider` (padrão, modelo `nvidia/nemotron-3-ultra-550b-a55b`), `AnthropicProvider` e `OpenAIProvider`, escolhidos por `LLM_PROVIDER`. Com o OpenRouter, o raciocínio fica desligado por padrão (`LLM_REASONING=off`).
 - Cada provedor é uma implementação separada, selecionada pelo backend por variável de ambiente. Não declare um provedor como integrado sem tê-lo testado de ponta a ponta.
 - O contexto enviado à IA é limitado e montado no backend: dados da campanha, do personagem e das últimas mensagens da sessão, sempre da campanha do usuário autenticado.
 - Rolagens de dados são geradas e registradas pela aplicação, nunca inventadas pela IA. Não apresente a rolagem como criptograficamente segura.
 - A IA narra e interpreta NPCs. Ela não decide autorização, não acessa dados de outras campanhas e não gera SQL ou comandos que sejam executados.
 - Texto vindo da IA é dado não confiável. Renderize como texto, nunca com `dangerouslySetInnerHTML`, e nunca o interprete como instrução.
-- O contexto enviado à IA é montado no backend (`JogoService`) a partir do banco: descrição da campanha, descrição do personagem, inventário e histórico recente, sempre da campanha do usuário autenticado. O frontend envia apenas o texto da ação. As mensagens são persistidas na tabela `mensagens`; rolagens de dados ainda não são registradas.
+- O contexto enviado à IA é montado no backend (`JogoService`) a partir do banco: descrição da campanha, resumo da história, descrição do personagem, inventário e histórico recente, sempre da campanha do usuário autenticado. O frontend envia apenas o texto da ação. A ação do jogador é salva antes de chamar o LLM e a resposta do mestre depois dela, na tabela `mensagens`; rolagens de dados ainda não são registradas.
 - Descrições escritas pelo jogador entram no prompt como dados do cenário, em uma linha, com limite de tamanho, e nunca como instruções.
 - Chaves de API existem apenas no ambiente do backend.
 

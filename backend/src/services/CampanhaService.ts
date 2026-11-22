@@ -1,19 +1,18 @@
 import type { Campanha } from '../models/Campanha.js';
 import { CampanhaRepository } from '../repositories/CampanhaRepository.js';
+import { HistoriaRepository } from '../repositories/HistoriaRepository.js';
 import { MensagemRepository } from '../repositories/MensagemRepository.js';
 import { PersonagemRepository } from '../repositories/PersonagemRepository.js';
 import { calcularDeslocamento, montarPagina, type Pagina, type ParametrosPaginacao } from '../utils/paginacao.js';
 import type { CampanhaInput } from '../validators/jogoValidator.js';
+import { criarMensagemDeAbertura, TITULO_PRIMEIRA_HISTORIA } from './abertura.js';
 import { RecursoNaoEncontradoError, ReferenciaInvalidaError } from './erros.js';
-
-export function criarMensagemDeAbertura(nomeDaCampanha: string): string {
-  return `A aventura "${nomeDaCampanha}" começa agora. O que você faz?`;
-}
 
 export class CampanhaService {
   constructor(
     private readonly campanhas = new CampanhaRepository(),
     private readonly personagens = new PersonagemRepository(),
+    private readonly historias = new HistoriaRepository(),
     private readonly mensagens = new MensagemRepository()
   ) {}
 
@@ -38,7 +37,12 @@ export class CampanhaService {
       descricao: dados.descricao,
       personagemId
     });
-    await this.mensagens.criarVarias(campanha.id, [
+    const historia = await this.historias.criar(usuarioId, {
+      campanhaId: campanha.id,
+      titulo: TITULO_PRIMEIRA_HISTORIA,
+      resumo: ''
+    });
+    await this.mensagens.criarVarias(historia.id, [
       { autor: 'mestre', texto: criarMensagemDeAbertura(campanha.nome) }
     ]);
     return campanha;

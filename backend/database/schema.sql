@@ -1,4 +1,32 @@
+-- Banco de dados do FableDM.
+-- Compatível com MySQL 8.0.16+.
+
+CREATE DATABASE IF NOT EXISTS fabledm
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
 USE fabledm;
+
+CREATE TABLE IF NOT EXISTS usuarios (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  nome VARCHAR(150) NOT NULL,
+  email VARCHAR(254) NOT NULL,
+  cpf CHAR(11) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  senha_hash VARCHAR(255) NOT NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT pk_usuarios PRIMARY KEY (id),
+  CONSTRAINT uq_usuarios_email UNIQUE (email),
+  CONSTRAINT uq_usuarios_cpf UNIQUE (cpf),
+  CONSTRAINT chk_usuarios_nome CHECK (CHAR_LENGTH(TRIM(nome)) >= 3),
+  CONSTRAINT chk_usuarios_cpf CHECK (cpf REGEXP '^[0-9]{11}$')
+) ENGINE=InnoDB;
+
+-- Observações:
+-- 1. A senha original nunca é armazenada; somente o hash bcrypt.
+-- 2. O e-mail usa collation case-insensitive, evitando duplicidade por maiúsculas/minúsculas.
+-- 3. A validação completa do e-mail, da força da senha e dos dígitos do CPF
+--    permanece na aplicação. O banco também protege a unicidade e o formato básico do CPF.
 
 CREATE TABLE IF NOT EXISTS personagens (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -45,14 +73,31 @@ CREATE TABLE IF NOT EXISTS campanhas (
   INDEX idx_campanhas_usuario_atividade (usuario_id, atualizada_em)
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS historias (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  usuario_id BIGINT UNSIGNED NOT NULL,
+  campanha_id BIGINT UNSIGNED NOT NULL,
+  titulo VARCHAR(120) NOT NULL,
+  resumo VARCHAR(1000) NOT NULL DEFAULT '',
+  criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  atualizada_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT pk_historias PRIMARY KEY (id),
+  CONSTRAINT fk_historias_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE,
+  CONSTRAINT fk_historias_campanha FOREIGN KEY (campanha_id) REFERENCES campanhas (id) ON DELETE CASCADE,
+  CONSTRAINT chk_historias_titulo CHECK (CHAR_LENGTH(TRIM(titulo)) >= 2),
+  INDEX idx_historias_usuario_atividade (usuario_id, atualizada_em),
+  INDEX idx_historias_campanha (campanha_id, atualizada_em)
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS mensagens (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  campanha_id BIGINT UNSIGNED NOT NULL,
+  historia_id BIGINT UNSIGNED NOT NULL,
   autor ENUM('mestre', 'jogador') NOT NULL,
   texto MEDIUMTEXT NOT NULL,
   criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT pk_mensagens PRIMARY KEY (id),
-  CONSTRAINT fk_mensagens_campanha FOREIGN KEY (campanha_id) REFERENCES campanhas (id) ON DELETE CASCADE,
-  INDEX idx_mensagens_campanha (campanha_id, id)
+  CONSTRAINT fk_mensagens_historia FOREIGN KEY (historia_id) REFERENCES historias (id) ON DELETE CASCADE,
+  INDEX idx_mensagens_historia (historia_id, id)
 ) ENGINE=InnoDB;

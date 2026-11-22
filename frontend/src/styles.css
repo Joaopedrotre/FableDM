@@ -291,3 +291,5 @@ a.botao { display: inline-block; text-decoration: none; text-align: center; }
   .formulario { padding: 1.1rem; }
   .topo-pagina h2 { font-size: 1.4rem; }
 }
+
+.carregar-anteriores { align-self: center; padding: .5rem .9rem; }

@@ -1,25 +1,18 @@
 import type { Request, Response } from 'express';
 import { usuarioAutenticado } from '../middlewares/autenticar.js';
 import { CampanhaService } from '../services/CampanhaService.js';
-import { JogoService } from '../services/JogoService.js';
-import { acaoSchema, campanhaSchema } from '../validators/jogoValidator.js';
+import { campanhaSchema } from '../validators/jogoValidator.js';
 import {
   campanhaParaResposta,
   executar,
-  itemParaResposta,
   lerId,
   lerPaginacao,
-  mensagemParaResposta,
   naoEncontrado,
-  personagemParaResposta,
   validar
 } from './respostas.js';
 
 export class CampanhaController {
-  constructor(
-    private readonly service = new CampanhaService(),
-    private readonly jogo = new JogoService()
-  ) {}
+  constructor(private readonly service = new CampanhaService()) {}
 
   listar = async (req: Request, res: Response): Promise<void> => {
     const paginacao = lerPaginacao(req.query, res);
@@ -68,37 +61,6 @@ export class CampanhaController {
     await executar(res, async () => {
       await this.service.excluir(usuarioAutenticado(res), id);
       res.json({ mensagem: 'Campanha excluída.' });
-    });
-  };
-
-  sessao = async (req: Request, res: Response): Promise<void> => {
-    const id = lerId(req.params.id);
-    if (id === null) return naoEncontrado(res, 'Campanha');
-
-    await executar(res, async () => {
-      const sessao = await this.jogo.obterSessao(usuarioAutenticado(res), id);
-      res.json({
-        campanha: campanhaParaResposta(sessao.campanha),
-        personagem: sessao.personagem ? personagemParaResposta(sessao.personagem) : null,
-        itens: sessao.itens.map(itemParaResposta),
-        totalItens: sessao.totalItens,
-        mensagens: sessao.mensagens.map(mensagemParaResposta)
-      });
-    });
-  };
-
-  enviarAcao = async (req: Request, res: Response): Promise<void> => {
-    const id = lerId(req.params.id);
-    if (id === null) return naoEncontrado(res, 'Campanha');
-    const dados = validar(acaoSchema, req.body, res);
-    if (!dados) return;
-
-    await executar(res, async () => {
-      const troca = await this.jogo.enviarAcao(usuarioAutenticado(res), id, dados.texto);
-      res.json({
-        mensagem: mensagemParaResposta(troca.mensagem),
-        resposta: mensagemParaResposta(troca.resposta)
-      });
     });
   };
 }

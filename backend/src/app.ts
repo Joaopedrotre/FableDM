@@ -6,6 +6,7 @@ import autenticacaoRoutes from './routes/autenticacaoRoutes.js';
 import usuarioRoutes from './routes/usuarioRoutes.js';
 import personagemRoutes from './routes/personagemRoutes.js';
 import campanhaRoutes from './routes/campanhaRoutes.js';
+import historiaRoutes from './routes/historiaRoutes.js';
 import mestreRoutes from './routes/mestreRoutes.js';
 
 export const app = express();
@@ -25,6 +26,7 @@ app.use('/login', autenticacaoRoutes);
 app.use('/usuarios', usuarioRoutes);
 app.use('/personagens', personagemRoutes);
 app.use('/campanhas', campanhaRoutes);
+app.use('/historias', historiaRoutes);
 app.use('/mestre', mestreRoutes);
 
 app.use((_req, res) => res.status(404).json({ mensagem: 'Rota não encontrada.' }));

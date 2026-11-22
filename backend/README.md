@@ -14,7 +14,7 @@ Chat com o mestre: `POST /mestre/mensagem` conversa com um provedor de LLM (veja
 
 Também estão implementados: login com JWT (`POST /login`), edição de perfil (`PUT /usuarios/me`), login rápido da conta de teste (`POST /login/teste`, desativado por padrão), contas de demonstração e `GET /saude`. O chat com o Mestre exige JWT.
 
-Ainda não estão implementados: campanhas, personagens, NPCs, locais e persistência das mensagens.
+Também estão implementados os CRUDs autenticados e paginados de personagens, itens, campanhas e histórias, e a persistência das mensagens de cada história (`POST /historias/:id/mensagens`). Não estão implementados: NPCs e locais.
 
 ## Organização e Tech Forge
 
@@ -32,7 +32,7 @@ Node.js, Express, TypeScript, MySQL (`mysql2`), Zod e bcryptjs. A integração c
    npm install
    ```
 
-2. Com o MySQL 8.0.16+ em execução, execute `database/schema.sql` para criar o banco `fabledm` e a tabela `usuarios`.
+2. Com o MySQL 8.0.16+ em execução, execute `database/schema.sql` para criar o banco `fabledm` e todas as tabelas (`usuarios`, `personagens`, `itens`, `campanhas`, `historias` e `mensagens`).
 3. (Recomendado) Crie um usuário próprio para a aplicação, conforme `database/README.md`.
 4. Copie `.env.example` para `.env` e ajuste as credenciais do MySQL e as variáveis do provedor de IA (`LLM_*`).
 5. Inicie a API:
@@ -45,7 +45,7 @@ A API ficará disponível em `http://localhost:3000` por padrão.
 
 ## Banco de dados
 
-O esquema desta sprint contém somente a tabela `usuarios`. O modelo e os comandos para criação, permissões e verificação estão em [`database/README.md`](database/README.md).
+O esquema completo está em `database/schema.sql`: `usuarios`, `personagens`, `itens`, `campanhas`, `historias` e `mensagens`. O modelo e os comandos para criação, permissões e verificação estão em [`database/README.md`](database/README.md).
 
 ## Endpoint
 
@@ -104,16 +104,20 @@ Exige JWT. Corpo `{ "nome", "cpf", "senha"? }`; sem `senha`, a atual é mantida.
 
 | Variável | Descrição |
 |---|---|
-| `LLM_PROVIDER` | `anthropic` (padrão) ou `openai` (também serve para APIs compatíveis, como Ollama, usando `LLM_BASE_URL`) |
+| `LLM_PROVIDER` | `openrouter` (padrão), `anthropic` ou `openai` (este também serve para APIs compatíveis, como Ollama, usando `LLM_BASE_URL`) |
 | `LLM_API_KEY` | Chave de API do provedor. Fica somente no `.env` do backend |
 | `LLM_MODEL` | Nome do modelo, conforme a documentação do provedor |
 | `LLM_BASE_URL` | Opcional. URL base alternativa (ex.: `http://localhost:11434/v1` para Ollama; nesse caso `LLM_API_KEY` pode ficar vazia) |
-| `LLM_MAX_TOKENS` | Limite de tokens por resposta (padrão 600) |
+| `LLM_MAX_TOKENS` | Limite de tokens por resposta (padrão 1200). Com o OpenRouter, os tokens de raciocínio também contam nesse limite |
+| `LLM_REASONING` | Só para `openrouter`: `off` (padrão), `medium`, `high` ou `default` (não envia o parâmetro e usa o comportamento padrão do modelo) |
+| `LLM_TIMEOUT_MS` | Tempo limite da chamada ao provedor, em milissegundos (padrão 60000) |
 
 ### Estrutura
 
 - `src/providers/LLMProvider.ts`: interface comum dos provedores.
-- `src/providers/AnthropicProvider.ts` e `OpenAIProvider.ts`: implementações via `fetch`. Para adicionar outro provedor, implemente `LLMProvider` e registre em `src/providers/index.ts`.
+- `src/providers/OpenRouterProvider.ts`, `AnthropicProvider.ts` e `OpenAIProvider.ts`: implementações via `fetch`. O `OpenRouterProvider` usa `https://openrouter.ai/api/v1`, envia `max_tokens` e controla o raciocínio pelo parâmetro `reasoning`. Para adicionar outro provedor, implemente `LLMProvider` e registre em `src/providers/index.ts`.
+- `src/services/JogoService.ts` e `contextoDoMestre.ts`: abrem a sessão de uma história, salvam cada mensagem no banco e montam o contexto (campanha, resumo da história, personagem e itens) enviado ao mestre.
+- `src/scripts/testarLlm.ts`: `npm run llm:testar` faz uma chamada curta ao provedor configurado para validar chave e modelo.
 - `src/services/MestreService.ts`: prompt de sistema do mestre, conversão do histórico e limite das últimas 20 mensagens.
 - `src/services/removerRaciocinio.ts`: remove da resposta os blocos `<think>...</think>` (e `<thinking>`) antes de enviá-la ao frontend, inclusive blocos sem fechamento ou com apenas a tag de fechamento.
 - `src/validators/mestreValidator.ts`: valida o corpo (até 40 mensagens; a última deve ser do jogador; cada ação do jogador pode ter até 5000 caracteres e cada resposta do mestre no histórico até 30000; os limites são as constantes `LIMITE_TEXTO_JOGADOR` e `LIMITE_TEXTO_MESTRE` no próprio arquivo).

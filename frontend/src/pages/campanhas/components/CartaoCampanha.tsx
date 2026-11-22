@@ -20,8 +20,11 @@ export default function CartaoCampanha({ campanha, aoExcluir }: Props) {
         Última atividade: {formatarDataHora(campanha.atualizadaEm)}
       </p>
       <div className="cartao-lista-acoes">
-        <Link to={`/jogo/${campanha.id}`} className="botao">
+        <Link to={`/campanhas/${campanha.id}/continuar`} className="botao">
           Continuar aventura
+        </Link>
+        <Link to={`/historias?campanha=${campanha.id}`} className="botao botao-secundario">
+          Histórias
         </Link>
         <Link to={`/campanhas/${campanha.id}/editar`} className="botao botao-secundario">
           Editar

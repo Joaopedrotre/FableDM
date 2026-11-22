@@ -13,7 +13,4 @@ router.get('/:id', campanhas.buscar);
 router.put('/:id', campanhas.editar);
 router.delete('/:id', campanhas.excluir);
 
-router.get('/:id/sessao', campanhas.sessao);
-router.post('/:id/mensagens', campanhas.enviarAcao);
-
 export default router;

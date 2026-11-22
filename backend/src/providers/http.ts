@@ -1,6 +1,5 @@
+import { env } from '../config/env.js';
 import { ProvedorError } from './LLMProvider.js';
-
-const TEMPO_LIMITE_MS = 30000;
 
 export async function postarJson(
   url: string,
@@ -13,7 +12,7 @@ export async function postarJson(
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...cabecalhos },
       body: JSON.stringify(corpo),
-      signal: AbortSignal.timeout(TEMPO_LIMITE_MS)
+      signal: AbortSignal.timeout(env.LLM_TIMEOUT_MS)
     });
   } catch (erro) {
     console.error('Falha de conexão com o provedor de IA:', erro);

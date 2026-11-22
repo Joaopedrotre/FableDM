@@ -10,10 +10,21 @@ interface Props {
   aoEnviar: (texto: string) => void;
   carregando?: boolean;
   erro?: string;
+  temAnteriores?: boolean;
+  carregandoAnteriores?: boolean;
+  aoCarregarAnteriores?: () => void;
 }
 
 // Área central: histórico de mensagens e campo para escrever a ação.
-export default function Chat({ mensagens, aoEnviar, carregando = false, erro = '' }: Props) {
+export default function Chat({
+  mensagens,
+  aoEnviar,
+  carregando = false,
+  erro = '',
+  temAnteriores = false,
+  carregandoAnteriores = false,
+  aoCarregarAnteriores,
+}: Props) {
   const [texto, setTexto] = useState('');
   const fim = useRef<HTMLDivElement>(null);
   const lista = useRef<HTMLDivElement>(null);
@@ -21,9 +32,10 @@ export default function Chat({ mensagens, aoEnviar, carregando = false, erro = '
   const [dadosAbertos, setDadosAbertos] = useState(false);
 
   // Rola para a última mensagem sempre que chegar uma nova
+  const idDaUltima = mensagens[mensagens.length - 1]?.id;
   useEffect(() => {
     fim.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [mensagens, carregando]);
+  }, [idDaUltima, carregando]);
 
   const seguirFim = useCallback(() => {
     const el = lista.current;
@@ -48,6 +60,16 @@ export default function Chat({ mensagens, aoEnviar, carregando = false, erro = '
   return (
     <section className="chat" aria-label="Chat da aventura">
       <div className="mensagens" aria-live="polite" ref={lista}>
+        {temAnteriores && aoCarregarAnteriores && (
+          <button
+            type="button"
+            className="botao botao-secundario carregar-anteriores"
+            onClick={aoCarregarAnteriores}
+            disabled={carregandoAnteriores}
+          >
+            {carregandoAnteriores ? 'Carregando…' : 'Carregar mensagens anteriores'}
+          </button>
+        )}
         {mensagens.map((m) => (
           <article key={m.id} className={`msg ${m.autor}`}>
             <strong>{m.autor === 'mestre' ? 'Mestre' : 'Você'}</strong>
@@ -79,7 +101,7 @@ export default function Chat({ mensagens, aoEnviar, carregando = false, erro = '
           ref={campo}
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
-          placeholder={'O que você faz? Descreva uma ação, fala ou pensamento do seu personagem. Use "" para falas e ** para pensamentos.'}
+          placeholder={'O que você faz? Descreva uma ação ou fala do seu personagem.'}
           maxLength={LIMITE_CARACTERES_ACAO}
           aria-label="Sua ação"
         />

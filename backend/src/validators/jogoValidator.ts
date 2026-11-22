@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { paginacaoSchema } from '../utils/paginacao.js';
 import { LIMITE_TEXTO_JOGADOR } from './mestreValidator.js';
 
 export const LIMITE_IMAGEM = 400_000;
@@ -52,7 +53,34 @@ export const acaoSchema = z.object({
     .max(LIMITE_TEXTO_JOGADOR, `A ação deve ter no máximo ${LIMITE_TEXTO_JOGADOR} caracteres.`)
 });
 
+export const historiaSchema = z.object({
+  campanhaId: z
+    .number({ required_error: 'Escolha uma campanha.', invalid_type_error: 'Escolha uma campanha.' })
+    .int('Escolha uma campanha.')
+    .positive('Escolha uma campanha.'),
+  titulo: z
+    .string()
+    .trim()
+    .min(2, 'O título deve ter ao menos 2 caracteres.')
+    .max(120, 'O título deve ter no máximo 120 caracteres.')
+    .transform((titulo) => titulo.replace(/\s+/g, ' ')),
+  resumo: z.string().trim().max(1000, 'O resumo deve ter no máximo 1000 caracteres.').default('')
+});
+
+export const edicaoHistoriaSchema = historiaSchema.omit({ campanhaId: true });
+
+export const consultaHistoriasSchema = paginacaoSchema.extend({
+  campanhaId: z.coerce.number().int().positive().optional()
+});
+
+export const mensagensAnterioresSchema = z.object({
+  antesDe: z.coerce.number().int().positive('Informe a mensagem de referência.'),
+  limite: z.coerce.number().int().min(1).max(100).default(50)
+});
+
 export type PersonagemInput = z.infer<typeof personagemSchema>;
 export type ItemInput = z.infer<typeof itemSchema>;
 export type CampanhaInput = z.infer<typeof campanhaSchema>;
 export type AcaoInput = z.infer<typeof acaoSchema>;
+export type HistoriaInput = z.infer<typeof historiaSchema>;
+export type EdicaoHistoriaInput = z.infer<typeof edicaoHistoriaSchema>;

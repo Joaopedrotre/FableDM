@@ -17,14 +17,16 @@ const schema = z
     DB_USER: z.string().min(1),
     DB_PASSWORD: z.string(),
     DB_NAME: z.string().min(1),
-    LLM_PROVIDER: z.enum(['anthropic', 'openai']).default('anthropic'),
+    LLM_PROVIDER: z.enum(['anthropic', 'openai', 'openrouter']).default('openrouter'),
     LLM_API_KEY: z.string().default(''),
     LLM_MODEL: z.string().min(1, 'Informe o modelo do provedor de IA.'),
     LLM_BASE_URL: z.string().url().optional().or(z.literal('').transform(() => undefined)),
-    LLM_MAX_TOKENS: z.coerce.number().int().positive().default(600)
+    LLM_MAX_TOKENS: z.coerce.number().int().positive().default(1200),
+    LLM_REASONING: z.enum(['default', 'off', 'medium', 'high']).default('off'),
+    LLM_TIMEOUT_MS: z.coerce.number().int().min(1000).default(60000)
   })
   .superRefine((dados, ctx) => {
-    const exigeChave = dados.LLM_PROVIDER === 'anthropic' || !dados.LLM_BASE_URL;
+    const exigeChave = dados.LLM_PROVIDER !== 'openai' || !dados.LLM_BASE_URL;
     if (exigeChave && dados.LLM_API_KEY.trim() === '') {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

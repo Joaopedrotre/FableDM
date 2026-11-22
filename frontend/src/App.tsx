@@ -6,6 +6,9 @@ import Jogo from './pages/Jogo';
 import JogoInicio from './pages/JogoInicio';
 import Perfil from './pages/Perfil';
 import Campanhas from './pages/campanhas/Campanhas';
+import ContinuarCampanha from './pages/campanhas/ContinuarCampanha';
+import Historias from './pages/historias/Historias';
+import HistoriaFormulario from './pages/historias/HistoriaFormulario';
 import CampanhaFormulario from './pages/campanhas/CampanhaFormulario';
 import Personagens from './pages/personagens/Personagens';
 import PersonagemFormulario from './pages/personagens/PersonagemFormulario';
@@ -24,6 +27,10 @@ export default function App() {
         <Route path="/campanhas" element={<Campanhas />} />
         <Route path="/campanhas/nova" element={<CampanhaFormulario />} />
         <Route path="/campanhas/:id/editar" element={<CampanhaFormulario />} />
+        <Route path="/campanhas/:id/continuar" element={<ContinuarCampanha />} />
+        <Route path="/historias" element={<Historias />} />
+        <Route path="/historias/nova" element={<HistoriaFormulario />} />
+        <Route path="/historias/:id/editar" element={<HistoriaFormulario />} />
         <Route path="/personagens" element={<Personagens />} />
         <Route path="/personagens/novo" element={<PersonagemFormulario />} />
         <Route path="/personagens/:id/editar" element={<PersonagemFormulario />} />

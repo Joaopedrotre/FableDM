@@ -4,7 +4,7 @@ export type AutorMensagem = 'mestre' | 'jogador';
 
 export interface DadosMensagemJogo {
   id: number;
-  campanhaId: number;
+  historiaId: number;
   autor: AutorMensagem;
   texto: string;
   criadoEm: Date;
@@ -16,18 +16,18 @@ export interface NovaMensagemJogo {
 }
 
 export class MensagemJogo extends Entidade {
-  readonly #campanhaId: number;
+  readonly #historiaId: number;
   readonly #autor: AutorMensagem;
   readonly #texto: string;
 
   constructor(dados: DadosMensagemJogo) {
     super(dados.id, dados.criadoEm);
-    this.#campanhaId = dados.campanhaId;
+    this.#historiaId = dados.historiaId;
     this.#autor = dados.autor;
     this.#texto = dados.texto;
   }
 
-  get campanhaId(): number { return this.#campanhaId; }
+  get historiaId(): number { return this.#historiaId; }
   get autor(): AutorMensagem { return this.#autor; }
   get texto(): string { return this.#texto; }
 }

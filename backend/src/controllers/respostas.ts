@@ -1,6 +1,7 @@
 import type { Response } from 'express';
 import type { ZodIssue, ZodType, ZodTypeDef } from 'zod';
 import type { Campanha } from '../models/Campanha.js';
+import type { Historia } from '../models/Historia.js';
 import type { Item } from '../models/Item.js';
 import type { MensagemJogo } from '../models/MensagemJogo.js';
 import type { Personagem } from '../models/Personagem.js';
@@ -53,6 +54,19 @@ export function campanhaParaResposta(campanha: Campanha) {
     personagemNome: campanha.personagemNome,
     criadoEm: campanha.criadoEm.toISOString(),
     atualizadaEm: campanha.atualizadaEm.toISOString()
+  };
+}
+
+export function historiaParaResposta(historia: Historia) {
+  return {
+    id: historia.id,
+    campanhaId: historia.campanhaId,
+    campanhaNome: historia.campanhaNome,
+    titulo: historia.titulo,
+    resumo: historia.resumo,
+    totalMensagens: historia.totalMensagens,
+    criadoEm: historia.criadoEm.toISOString(),
+    atualizadaEm: historia.atualizadaEm.toISOString()
   };
 }
 

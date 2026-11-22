@@ -19,4 +19,5 @@ export const ROTAS_API = {
   mestre: '/mestre/mensagem',
   personagens: '/personagens',
   campanhas: '/campanhas',
+  historias: '/historias',
 };

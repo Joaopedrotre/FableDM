@@ -1,10 +1,12 @@
 import bcrypt from 'bcryptjs';
 import { CONTAS_DEMONSTRACAO, EMAIL_CONTA_TESTE, JOGO_DEMONSTRACAO } from '../config/contasDemonstracao.js';
 import { CampanhaRepository } from '../repositories/CampanhaRepository.js';
+import { HistoriaRepository } from '../repositories/HistoriaRepository.js';
 import { ItemRepository } from '../repositories/ItemRepository.js';
 import { MensagemRepository } from '../repositories/MensagemRepository.js';
 import { PersonagemRepository } from '../repositories/PersonagemRepository.js';
 import { UsuarioRepository } from '../repositories/UsuarioRepository.js';
+import { TITULO_PRIMEIRA_HISTORIA } from './abertura.js';
 
 export class DemonstracaoService {
   constructor(
@@ -12,6 +14,7 @@ export class DemonstracaoService {
     private readonly personagens = new PersonagemRepository(),
     private readonly itens = new ItemRepository(),
     private readonly campanhas = new CampanhaRepository(),
+    private readonly historias = new HistoriaRepository(),
     private readonly mensagens = new MensagemRepository()
   ) {}
 
@@ -53,7 +56,12 @@ export class DemonstracaoService {
 
       const { abertura, ...dadosCampanha } = JOGO_DEMONSTRACAO.campanha;
       const campanha = await this.campanhas.criar(usuarioId, { ...dadosCampanha, personagemId: personagem.id });
-      await this.mensagens.criarVarias(campanha.id, [{ autor: 'mestre', texto: abertura }]);
+      const historia = await this.historias.criar(usuarioId, {
+        campanhaId: campanha.id,
+        titulo: TITULO_PRIMEIRA_HISTORIA,
+        resumo: ''
+      });
+      await this.mensagens.criarVarias(historia.id, [{ autor: 'mestre', texto: abertura }]);
     } catch (erro) {
       console.error(
         'Não foi possível criar o jogo de demonstração:',

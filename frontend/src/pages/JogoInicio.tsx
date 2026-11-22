@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Aviso from '../components/Aviso';
-import { ErroApi, listarCampanhas } from '../services/api';
+import { ErroApi, listarCampanhas, listarHistorias } from '../services/api';
 
 export default function JogoInicio() {
   const navigate = useNavigate();
@@ -9,10 +9,15 @@ export default function JogoInicio() {
 
   useEffect(() => {
     let ativo = true;
-    listarCampanhas(1, 1)
-      .then(({ dados }) => {
+    listarHistorias(1, 1)
+      .then(async ({ dados }) => {
         if (!ativo) return;
-        navigate(dados.length > 0 ? `/jogo/${dados[0].id}` : '/campanhas', { replace: true });
+        if (dados.length > 0) {
+          navigate(`/jogo/${dados[0].id}`, { replace: true });
+          return;
+        }
+        const campanhas = await listarCampanhas(1, 1);
+        if (ativo) navigate(campanhas.dados.length > 0 ? '/historias/nova' : '/campanhas', { replace: true });
       })
       .catch((err: unknown) => {
         if (ativo) setErro(err instanceof ErroApi && err.message ? err.message : 'Não foi possível abrir sua aventura.');

@@ -6,6 +6,7 @@ export interface ItemDoContexto {
 
 export interface ContextoJogo {
   campanha: { nome: string; descricao: string };
+  resumoDaHistoria: string;
   personagem: { nome: string; descricao: string } | null;
   itens: ItemDoContexto[];
   totalItens: number;
@@ -27,6 +28,9 @@ export function montarContextoDoMestre(contexto: ContextoJogo): string {
     `Campanha: ${emUmaLinha(contexto.campanha.nome)}`,
     `Descrição da campanha: ${emUmaLinha(contexto.campanha.descricao)}`
   ];
+
+  const resumo = emUmaLinha(contexto.resumoDaHistoria);
+  if (resumo) linhas.push(`Resumo da história até aqui (escrito pelo jogador): ${resumo}`);
 
   if (!contexto.personagem) {
     linhas.push('', 'O jogador ainda não vinculou um personagem a esta campanha; trate-o como um aventureiro sem nome definido.');

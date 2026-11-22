@@ -3,9 +3,12 @@ import type {
   Campanha,
   DadosCadastro,
   DadosCampanha,
+  DadosEdicaoHistoria,
+  DadosNovaHistoria,
   DadosEdicao,
   DadosItem,
   DadosPersonagem,
+  Historia,
   Item,
   Mensagem,
   Pagina,
@@ -14,6 +17,7 @@ import type {
   RespostaEdicao,
   RespostaExclusao,
   RespostaLogin,
+  RespostaMensagensAnteriores,
   RespostaMestre,
   SessaoJogo,
 } from '../types';
@@ -143,8 +147,33 @@ export const editarCampanha = (id: number, dados: DadosCampanha) =>
 export const excluirCampanha = (id: number) =>
   enviar<RespostaExclusao>(`${ROTAS_API.campanhas}/${id}`, undefined, 'DELETE');
 
-export const obterSessao = (campanhaId: number) =>
-  enviar<SessaoJogo>(`${ROTAS_API.campanhas}/${campanhaId}/sessao`, undefined, 'GET');
+export const listarHistorias = (pagina: number, limite = 6, campanhaId?: number) =>
+  enviar<Pagina<Historia>>(
+    `${ROTAS_API.historias}${consulta(pagina, limite)}${campanhaId === undefined ? '' : `&campanhaId=${campanhaId}`}`,
+    undefined,
+    'GET'
+  );
 
-export const enviarAcao = (campanhaId: number, texto: string) =>
-  enviar<RespostaAcao>(`${ROTAS_API.campanhas}/${campanhaId}/mensagens`, { texto });
+export const buscarHistoria = (id: number) =>
+  enviar<Historia>(`${ROTAS_API.historias}/${id}`, undefined, 'GET');
+
+export const criarHistoria = (dados: DadosNovaHistoria) => enviar<Historia>(ROTAS_API.historias, dados);
+
+export const editarHistoria = (id: number, dados: DadosEdicaoHistoria) =>
+  enviar<Historia>(`${ROTAS_API.historias}/${id}`, dados, 'PUT');
+
+export const excluirHistoria = (id: number) =>
+  enviar<RespostaExclusao>(`${ROTAS_API.historias}/${id}`, undefined, 'DELETE');
+
+export const obterSessao = (historiaId: number) =>
+  enviar<SessaoJogo>(`${ROTAS_API.historias}/${historiaId}/sessao`, undefined, 'GET');
+
+export const carregarMensagensAnteriores = (historiaId: number, antesDe: number) =>
+  enviar<RespostaMensagensAnteriores>(
+    `${ROTAS_API.historias}/${historiaId}/mensagens?antesDe=${antesDe}&limite=50`,
+    undefined,
+    'GET'
+  );
+
+export const enviarAcao = (historiaId: number, texto: string) =>
+  enviar<RespostaAcao>(`${ROTAS_API.historias}/${historiaId}/mensagens`, { texto });
