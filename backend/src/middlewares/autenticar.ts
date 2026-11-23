@@ -1,12 +1,20 @@
 import type { RequestHandler, Response } from 'express';
+import { UsuarioRepository } from '../repositories/UsuarioRepository.js';
 import { TokenService } from '../services/TokenService.js';
 
-export function criarAutenticacao(tokens: TokenService = new TokenService()): RequestHandler {
-  return (req, res, next) => {
+export interface BuscadorDeUsuario {
+  buscarPorId(id: number): Promise<unknown>;
+}
+
+export function criarAutenticacao(
+  tokens: TokenService = new TokenService(),
+  usuarios: BuscadorDeUsuario = new UsuarioRepository()
+): RequestHandler {
+  return async (req, res, next) => {
     const [tipo, token] = (req.headers.authorization ?? '').split(' ');
     const usuarioId = tipo === 'Bearer' && token ? tokens.verificar(token) : null;
 
-    if (usuarioId === null) {
+    if (usuarioId === null || !(await usuarios.buscarPorId(usuarioId))) {
       res.status(401).json({ mensagem: 'Sessão inválida ou expirada. Entre novamente.' });
       return;
     }

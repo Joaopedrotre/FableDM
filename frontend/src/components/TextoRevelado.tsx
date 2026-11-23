@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CARACTERES_POR_SEGUNDO } from '../config';
+import { analisarMarkdown, contarCaracteres, truncarBlocos } from '../utils/markdown';
+import TextoFormatado from './TextoFormatado';
 
 interface Props {
   texto: string;
@@ -13,11 +15,13 @@ function deveAnimar(animar: boolean): boolean {
 }
 
 export default function TextoRevelado({ texto, animar = false, aoProgredir }: Props) {
-  const [visiveis, setVisiveis] = useState(() => (deveAnimar(animar) ? 0 : texto.length));
+  const blocos = useMemo(() => analisarMarkdown(texto), [texto]);
+  const total = useMemo(() => contarCaracteres(blocos), [blocos]);
+  const [visiveis, setVisiveis] = useState(() => (deveAnimar(animar) ? 0 : total));
 
   useEffect(() => {
     if (!deveAnimar(animar)) {
-      setVisiveis(texto.length);
+      setVisiveis(total);
       return;
     }
 
@@ -26,25 +30,29 @@ export default function TextoRevelado({ texto, animar = false, aoProgredir }: Pr
     let quadro = 0;
 
     const passo = (agora: number) => {
-      const total = Math.min(texto.length, Math.floor(((agora - inicio) / 1000) * CARACTERES_POR_SEGUNDO));
-      setVisiveis(total);
-      if (total < texto.length) quadro = requestAnimationFrame(passo);
+      const revelados = Math.min(total, Math.floor(((agora - inicio) / 1000) * CARACTERES_POR_SEGUNDO));
+      setVisiveis(revelados);
+      if (revelados < total) quadro = requestAnimationFrame(passo);
     };
 
     quadro = requestAnimationFrame(passo);
     return () => cancelAnimationFrame(quadro);
-  }, [texto, animar]);
+  }, [total, animar]);
 
   useEffect(() => {
     aoProgredir?.();
   }, [visiveis, aoProgredir]);
 
-  if (!animar) return <>{texto}</>;
+  if (!animar) return <TextoFormatado blocos={blocos} />;
 
   return (
     <>
-      <span aria-hidden="true">{texto.slice(0, visiveis)}</span>
-      <span className="so-leitor">{texto}</span>
+      <div aria-hidden="true">
+        <TextoFormatado blocos={visiveis >= total ? blocos : truncarBlocos(blocos, visiveis)} />
+      </div>
+      <div className="so-leitor">
+        <TextoFormatado blocos={blocos} />
+      </div>
     </>
   );
 }
