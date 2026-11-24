@@ -325,3 +325,21 @@ a.botao { display: inline-block; text-decoration: none; text-align: center; }
 }
 
 .chat { overflow: hidden; }
+
+.marca-linha { display: flex; align-items: center; gap: .4em; }
+.logo { height: 1.5em; width: 1.5em; flex-shrink: 0; user-select: none; }
+.marca .logo { height: 1.7em; width: 1.7em; }
+.lateral h1 .logo { height: 1.5em; width: 1.5em; }
+.pagina-centro .lateral h1 .marca-linha { justify-content: center; }
+
+@media (max-width: 600px) {
+  .marca { font-size: 1.3rem; }
+  .marca .logo { height: 1.5em; width: 1.5em; }
+  .usuario-nome { max-width: 6rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .85rem; }
+}
+@media (max-width: 420px) {
+  .usuario-nome { display: none; }
+}
+@media (max-width: 380px) {
+  .lateral h1 { font-size: 2.2rem; }
+}

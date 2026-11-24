@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Logo from './Logo';
 
 const OPCOES_DO_MENU = [
   { rotulo: 'Campanhas', caminho: '/campanhas' },
@@ -38,7 +39,12 @@ export default function Cabecalho() {
         <span />
       </button>
 
-      <h1 className="marca">FableDM</h1>
+      <h1 className="marca">
+        <span className="marca-linha">
+          <Logo />
+          FableDM
+        </span>
+      </h1>
       <span className="usuario-nome">{usuario?.nome}</span>
 
       {aberto && (

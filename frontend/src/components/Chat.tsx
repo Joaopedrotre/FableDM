@@ -101,7 +101,7 @@ export default function Chat({
           ref={campo}
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
-          placeholder={'O que você faz? Descreva uma ação, fala ou pensamento do seu personagem. Use "" para falas e ** para pensamentos.'}
+          placeholder={'O que você faz? Descreva uma ação, ou fala do seu personagem.'}
           maxLength={LIMITE_CARACTERES_ACAO}
           aria-label="Sua ação"
         />
